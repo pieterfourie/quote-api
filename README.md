@@ -1,93 +1,122 @@
-# Quote of the Day (FastAPI)
+# Repo: quote-api
 
+A lightweight FastAPI project that serves a **Quote of the Day** based on your computer’s local date. It cycles through 365 quotes and repeats yearly.
 
-A tiny, file-backed FastAPI that returns a Quote of the Day based on the **host machine's local date**. The list loops across leap years using a fixed 365-item cycle.
+---
 
+## 🚀 Features
+- Returns a different quote each day (`/today`)
+- Fetch a random quote (`/random`)
+- Access a quote by index (`/quotes/{id}`)
+- Reload the quotes file dynamically (`/refresh`, optional token)
+- File-based storage (`data/quotes.txt`) — no database required
+- Automatically loops after day 365
 
-## Endpoints
-- `GET /today` → quote for today (fields: `id`, `text`, `day_of_year`)
-- `GET /random` → a random quote
-- `GET /quotes/{id}` → quote by index (0..364)
-- `POST /refresh` → reloads the quotes file (require header `X-Token` if `ADMIN_TOKEN` is set)
+---
 
+## 🧱 Project Structure
+```
+quote-api/
+│
+├── app/
+│   ├── main.py          # FastAPI app & routes
+│   ├── loader.py        # File loader for quotes
+│   └── models.py        # Pydantic models
+│
+├── data/
+│   └── quotes.txt       # 365 quotes
+│
+├── scripts/
+│   └── seed_365.py      # Optional helper to generate 365-line file
+│
+├── tests/
+│   └── test_today.py    # Pytest for /today endpoint
+│
+├── requirements.txt     # Dependencies list
+├── .gitignore
+├── pyproject.toml
+├── Dockerfile
+└── README.md
+```
 
-## Run locally
+---
+
+## ⚙️ Installation
+
+### 1️⃣ Clone the repo
 ```bash
-# 1) Install deps
-pip install -r <(python - <<'PY'\nprint('\n'.join(['fastapi>=0.115','uvicorn[standard]>=0.30','pydantic>=2.9']))\nPY)
+git clone https://github.com/pieterfourie/quote-api.git
+cd quote-api
+```
 
+### 2️⃣ (Optional) Create a virtual environment
+```bash
+python -m venv .venv
+.venv\Scripts\activate   # PowerShell
+# or
+source .venv/Scripts/activate   # Git Bash
+```
 
-# or use uv (recommended)
-# curl -LsSf https://astral.sh/uv/install.sh | sh
-# uv run uvicorn app.main:app --reload
+### 3️⃣ Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
+---
 
-# 2) Start dev server
+## ▶️ Run locally
+```bash
 uvicorn app.main:app --reload
-# Visit: http://127.0.0.1:8000/today
 ```
+Then visit:
+👉 http://127.0.0.1:8000/today
 
+---
 
-> The app reads `data/quotes.txt`. Ensure it has **exactly 365 lines**. If fewer, it pads with `(empty)` entries on load.
+## 🌱 Environment Variables
+- `QUOTES_PATH` – path to quotes file (default `data/quotes.txt`)
+- `ADMIN_TOKEN` – optional secret for `/refresh`
 
-
-## Environment Variables
-- `QUOTES_PATH` (default `data/quotes.txt`)
-- `ADMIN_TOKEN` (optional) — if set, `POST /refresh` requires header `X-Token: <token>`
-
-
-## Leap Year Behavior
-We compute the host's day-of-year and map it into a fixed 0..364 range using modulo 365. Feb 29 shares the same index as Mar 1 for consistency.
-
-
-## Tests
+Example (PowerShell):
+```powershell
+$env:ADMIN_TOKEN="supersecret"
+```
+Then call:
 ```bash
-python -m pytest -q
+curl -X POST http://127.0.0.1:8000/refresh -H "X-Token: supersecret"
 ```
 
+---
 
-## Docker (optional)
-```dockerfile
-FROM python:3.12-slim
-WORKDIR /app
-COPY pyproject.toml .
-RUN pip install --no-cache-dir fastapi uvicorn[standard] pydantic
-COPY app ./app
-COPY data ./data
-ENV QUOTES_PATH="data/quotes.txt"
-EXPOSE 8000
-CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000"]
+## 🧪 Test
+```bash
+pytest -q
 ```
 
+---
 
-### Run
+## 🐳 Docker
 ```bash
 docker build -t quote-api .
 docker run -p 8000:8000 quote-api
 ```
+Open http://127.0.0.1:8000/today
 
+---
 
-## Why it’s a good portfolio piece
-- Clean, deterministic logic (365-item cycle)
-- File-backed configuration (no DB)
-- Typed responses (Pydantic) & simple auth example
-- Unit test + optional Docker
-- Clear README and structure
+## 🧠 Notes
+- The app uses the **local system date** (no timezone logic)
+- On leap years, Feb 29 reuses March 1’s quote index
+- Missing lines in `quotes.txt` are auto-padded to 365
 
+---
 
-Quickstart (copy/paste)
-```bash
-# create venv (optional)
-python -m venv .venv && source .venv/bin/activate
+## 💡 Future Ideas
+- `/week` endpoint (7 upcoming quotes)
+- `/healthz` endpoint for uptime checks
+- Add CI workflow with `pytest` + `ruff`
 
+---
 
-# install
-pip install fastapi==0.115.* uvicorn[standard]==0.30.* pydantic==2.9.*
-
-
-# run
-uvicorn app.main:app --reload
-
-
-# try it
-curl http://127.0.0.1:8000/today
+## 📜 License
+MIT — free to use and modify.
