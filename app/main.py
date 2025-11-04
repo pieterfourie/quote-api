@@ -27,24 +27,39 @@ def today_index() -> int:
     d = datetime.now().timetuple().tm_yday  # 1..365/366
     return (d - 1) % 365
 
+def parse_quote(text: str):
+    """Split 'Quote — Author' into parts."""
+    if "—" in text:
+        parts = text.split("—", 1)
+        quote, author = parts[0].strip(), parts[1].strip()
+    elif "-" in text:
+        parts = text.split("-", 1)
+        quote, author = parts[0].strip(), parts[1].strip()
+    else:
+        quote, author = text.strip(), "Unknown"
+    return quote, author
+
+
 @app.get("/today", response_model=Quote)
 def get_today():
     idx = today_index()
-    return Quote(id=idx, text=QUOTES[idx], day_of_year=idx + 1)
+    text = QUOTES[idx]
+    quote, author = parse_quote(text)
+    return Quote(id=idx, quote=quote, author=author, day_of_year=idx + 1)
+
 
 @app.get("/random", response_model=Quote)
 def get_random():
     idx = random.randint(0, 364)
-    return Quote(id=idx, text=QUOTES[idx])
+    text = QUOTES[idx]
+    quote, author = parse_quote(text)
+    return Quote(id=idx, quote=quote, author=author, day_of_year=idx + 1)
+
 
 @app.get("/quotes/{qid}", response_model=Quote)
 def get_quote(qid: int):
     if not 0 <= qid < 365:
         raise HTTPException(status_code=404, detail="Quote index out of range 0..364")
-    return Quote(id=qid, text=QUOTES[qid])
-
-@app.post("/refresh", dependencies=[Depends(admin_auth)])
-def refresh():
-    global QUOTES
-    QUOTES = load_quotes(DATA_PATH)
-    return {"ok": True, "count": len(QUOTES)}
+    text = QUOTES[qid]
+    quote, author = parse_quote(text)
+    return Quote(id=qid, quote=quote, author=author, day_of_year=qid + 1)

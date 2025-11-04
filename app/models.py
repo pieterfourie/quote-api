@@ -3,5 +3,6 @@ from pydantic import BaseModel
 
 class Quote(BaseModel):
     id: int
-    text: str
+    quote: str
+    author: str
     day_of_year: int | None = None
