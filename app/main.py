@@ -67,3 +67,31 @@ def refresh():
     global QUOTES
     QUOTES = load_quotes(DATA_PATH)
     return {"ok": True, "count": len(QUOTES)}
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/html", response_class=HTMLResponse)
+def get_today_html():
+    idx = today_index()
+    q, a = parse_quote(QUOTES[idx])
+    return f"""<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quote of the Day</title>
+<style>
+  body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+          background:#0f1115; color:#e6e6e6; display:grid; place-items:center; 
+          min-height:100dvh; margin:0; }}
+  .card {{ max-width: 780px; padding: 32px 28px; background:#171a21; 
+           border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }}
+  blockquote {{ font-size: 1.6rem; line-height:1.5; margin:0 0 12px 0; }}
+  cite {{ display:block; opacity:.8; }}
+  small {{ opacity:.6; }}
+</style>
+<div class="card">
+  <blockquote>“{q}”</blockquote>
+  <cite>— {a}</cite>
+  <small>Day {idx + 1} of 365</small>
+</div>
+</html>"""
