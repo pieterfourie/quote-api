@@ -1,0 +1,17 @@
+```toml
+[project]
+name = "qoute-api"
+version = "1.0.0"
+description = "Quote of the Day API (file-backed, loops yearly)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+"fastapi>=0.115",
+"uvicorn[standard]>=0.30",
+"pydantic>=2.9",
+]
+
+
+[tool.ruff]
+line-length = 100
+```
